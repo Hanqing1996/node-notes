@@ -30,6 +30,25 @@
 * 告诉 js 文件可以读取了/出错了
 * 告诉 js 服务器响应了
 
+#### [emitter.emit](https://nodejs.org/docs/latest-v13.x/api/events.html#events_emitter_emit_eventname_args)
+* 是同步函数，不是异步的
+> Synchronously calls each of the listeners registered for the event named eventName, in the order they were registered, passing the supplied arguments to each.
+```
+const EventEmitter = require('events');
+const myEmitter = new EventEmitter();
+
+myEmitter.on('event', ()=>{
+  console.log('1');
+});
+
+console.log(2);
+
+myEmitter.emit('event');
+
+console.log(3);
+```
+执行顺序为 2 1 3
+
 #### Eventloop
-事件确定优先级后轮询
+[事件确定优先级后轮询](https://github.com/Hanqing1996/JavaScript-advance)
 
