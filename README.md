@@ -1,3 +1,5 @@
+[Node.js](在线运行工具)
+
 #### Node.js 不是啥
 * 不是 web 框架
 * 不是编程语言
@@ -48,6 +50,81 @@ myEmitter.emit('event');
 console.log(3);
 ```
 执行顺序为 2 1 3
+
+#### one 和 emit 
+1. emitter.on('event',callback);emitter.emit('event')后 callback才会执行
+2. 多次注册事件，会形成一个事件队列，emit 触发当前事件队列中的所有事件，不会触发 emit 后新注册的事件
+```
+const EventEmitter = require('events');
+const myEmitter = new EventEmitter();
+
+const fn=()=>{
+	console.log(1);
+	myEmitter.on('event', ()=>{
+		console.log('hhh')
+	});
+}
+myEmitter.on('event', fn);
+
+myEmitter.emit('event');
+myEmitter.emit('event');
+myEmitter.emit('event');
+```
+结果是
+```
+1
+1
+hhh
+1
+hhh
+hhh
+```
+注意
+```
+()=>{
+		console.log('hhh')
+	});
+```
+只有当该函数在事件队列中，且 emit('event') 时才会执行。
+
+#### [emitter.off](https://nodejs.org/docs/latest-v13.x/api/events.html#events_emitter_off_eventname_listener)
+* 取消订阅，必须传入回调函数名（即引用）
+```
+const EventEmitter = require('events');
+const myEmitter = new EventEmitter();
+
+const fn=()=>{
+	console.log(1);
+}
+myEmitter.on('event', fn);
+
+myEmitter.emit('event');
+myEmitter.off('event');
+myEmitter.emit('event');
+```
+> 结果报错：throw new ERR_INVALID_ARG_TYPE('listener', 'Function', listener);
+* 函数名代表 on 时的内存引用，所以 off 的第二个参数如果是箭头函数，则取消订阅失败
+```
+const EventEmitter = require('events');
+const myEmitter = new EventEmitter();
+
+myEmitter.on('event', fn=()=>{
+	console.log(1);
+});
+
+myEmitter.emit('event');
+
+// 传入相同内容的箭头函数，但与 on 时的箭头函数不是同一片内存，所以取消订阅失败
+myEmitter.off('event',()=>{
+	console.log(1);
+});
+myEmitter.emit('event');
+```
+执行结果
+```
+1
+1
+```
 
 #### Eventloop
 [事件确定优先级后轮询](https://github.com/Hanqing1996/JavaScript-advance)
