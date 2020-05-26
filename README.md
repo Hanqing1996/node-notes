@@ -125,6 +125,52 @@ myEmitter.emit('event');
 1
 1
 ```
+#### Node.js 的事件机制
+```
+// module1.js
+console.log(1);
+module.exports=()=>{console.log('module1 function')};
+console.log(2);
+
+// module2.js
+console.log('before require');
+const module_fn=require('./module1');
+module_fn();
+console.log('after require');
+require('./module1');
+module_fn();
+
+node module2.js
+```
+执行结果
+```
+before require
+1
+2
+module1 function
+after require
+module1 function
+```
+> 当 module1 第一次被 require 时，会执行 module1.js 代码，而第二次被 require 时，不会再执行 module1.js 代码
+
+> 之所以这么做，是为了节省文件读取IO。第二次的 require 直接从缓存里拿数据
+```
+// module1.js
+module.exports=()=>{console.log('module1 function')};
+
+// module2.js
+console.log(require);
+const module_fn=require('./module1');
+console.log(require);
+
+node module2.js
+```
+执行结果
+```
+{cache{module2...}}
+
+{cache{module2...,module1}} // 缓存了 module1
+```	
 
 #### Eventloop
 [事件确定优先级后轮询](https://github.com/Hanqing1996/JavaScript-advance)
