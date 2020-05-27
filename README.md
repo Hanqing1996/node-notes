@@ -27,14 +27,10 @@
 * v8 是多线程的，但是执行 js 放在一个单独线程里
 * 自带 eventloop,但是 Node.js 没有用它，而是基于 linuv 自己做了一个
 ---
-#### Event
-* 计时器到期
-* 告诉 js 文件可以读取了/出错了
-* 告诉 js 服务器响应了
 
-#### [emitter.emit](https://nodejs.org/docs/latest-v13.x/api/events.html#events_emitter_emit_eventname_args)
-* 是同步函数，不是异步的
-> Synchronously calls each of the listeners registered for the event named eventName, in the order they were registered, passing the supplied arguments to each.
+#### Node.js 的事件机制
+* [emitter.emit](https://nodejs.org/docs/latest-v13.x/api/events.html#events_emitter_emit_eventname_args)
+> 是同步函数，不是异步的。Synchronously calls each of the listeners registered for the event named eventName, in the order they were registered, passing the supplied arguments to each.
 ```
 const EventEmitter = require('events');
 const myEmitter = new EventEmitter();
@@ -50,8 +46,7 @@ myEmitter.emit('event');
 console.log(3);
 ```
 执行顺序为 2 1 3
-
-#### one 和 emit 
+* one 和 emit 的具体机制 
 1. emitter.on('event',callback);emitter.emit('event')后 callback才会执行
 2. 多次注册事件，会形成一个事件队列，emit 触发当前事件队列中的所有事件，不会触发 emit 后新注册的事件
 ```
@@ -86,9 +81,8 @@ hhh
 	});
 ```
 只有当该函数在事件队列中，且 emit('event') 时才会执行。
-
-#### [emitter.off](https://nodejs.org/docs/latest-v13.x/api/events.html#events_emitter_off_eventname_listener)
-* 取消订阅，必须传入回调函数名（即引用）
+* [emitter.off](https://nodejs.org/docs/latest-v13.x/api/events.html#events_emitter_off_eventname_listener)
+> 取消订阅，必须传入回调函数名（即引用）
 ```
 const EventEmitter = require('events');
 const myEmitter = new EventEmitter();
@@ -102,8 +96,8 @@ myEmitter.emit('event');
 myEmitter.off('event');
 myEmitter.emit('event');
 ```
-> 结果报错：throw new ERR_INVALID_ARG_TYPE('listener', 'Function', listener);
-* 函数名代表 on 时的内存引用，所以 off 的第二个参数如果是箭头函数，则取消订阅失败
+结果报错：throw new ERR_INVALID_ARG_TYPE('listener', 'Function', listener);
+> 函数名代表 on 时的内存引用，所以 off 的第二个参数如果是箭头函数，则取消订阅失败
 ```
 const EventEmitter = require('events');
 const myEmitter = new EventEmitter();
@@ -126,7 +120,7 @@ myEmitter.emit('event');
 1
 ```
 ---
-#### Node.js 的事件机制
+#### Node.js 的模块机制
 * 缓存
 ```
 // module1.js
@@ -248,6 +242,43 @@ setTimeout(() => {
 > 磁盘读写,网络请求,内存读写，都算IO
 
 #### stream
+> The readable.pipe() method attaches a Writable stream to the readable:readStream.pipe(writeStream)
+```
+const http = require('http')
+const fs = require('fs')
+const server = http.createServer()
+server.on('request', (request, response) => {
+
+    const stream =fs.createReadStream('./big_file.txt')
+
+    stream.pipe(response)
+})
+
+server.listen(8888)
+```
+等价于
+```
+const http = require('http')
+const server = http.createServer()
+server.on('request', (request, response) => {
+
+    const fs = require('fs')
+    const stream =fs.createReadStream('./big_file.txt')
+
+    // stram 一有新数据就传给 response
+    stream.on('data',(chunk)=>{
+        response.write(chunk)
+    })
+
+    // stream 被关闭时，也关闭 response
+    stream.on('end',()=>{
+        response.end()
+    })
+})
+
+server.listen(8888)
+```
+
 
 
 
