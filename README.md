@@ -125,7 +125,9 @@ myEmitter.emit('event');
 1
 1
 ```
+---
 #### Node.js 的事件机制
+* 缓存
 ```
 // module1.js
 console.log(1);
@@ -171,7 +173,26 @@ node module2.js
 
 {cache{module2...,module1}} // 缓存了 module1
 ```	
+* exports 是指向 module.exports 的引用
+```
+// module1.js
 
+// exports=module.exports; 这一句实际被执行了
+exports.a=1;
+console.log(module.exports);
+
+// module2.js
+const b=require('./module2');
+console.log(b);
+
+node module2.js
+```
+执行结果
+```
+{ a: 1 }
+{ a: 1 }
+```
+---
 #### Eventloop
 [事件确定优先级后轮询](https://github.com/Hanqing1996/JavaScript-advance)
 
