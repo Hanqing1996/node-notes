@@ -240,6 +240,17 @@ setTimeout(() => {
 { name: 'peiqi'} // 虽然缓存更新了，但是由于 a 与 require.module-a:exports 已经不指向同一片内存空间。所以a的值不发生变化。
 ```
 ---
+
+#### Node.js 的异步
+* 异步
+> CPU 告诉硬盘去读取数据，然后CPU执行其他计算任务，直到硬盘将数据送至内存，CPU才开始处理数据
+* IO
+> 磁盘读写,网络请求,内存读写，都算IO
+
+#### stream
+
+
+
 #### Eventloop
 [事件确定优先级后轮询](https://github.com/Hanqing1996/JavaScript-advance)
 
