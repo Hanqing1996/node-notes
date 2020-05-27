@@ -421,7 +421,131 @@ inStream.on('data', (chunk)=>{
     process.stdout.write(chunk)
 })
 ```
-	
+> 调用 inStream 的 read 方法实现
+```
+const { Readable } = require("stream");
+
+const inStream = new Readable({
+    read(size) {
+        const char = String.fromCharCode(this.currentCharCode++)
+        this.push(char);
+        // console.log(`推了 ${char}`)
+        if (this.currentCharCode > 90) { // Z
+            this.push(null);
+        }
+    }
+})
+
+inStream.currentCharCode = 65 // A
+
+inStream.pipe(process.stdout)
+// stdout 会不停调用 inStream 的 read。
+/***
+ * In flowing mode, readable.read() is called automatically until the internal buffer is fully drained.
+ */
+```
+* transform
+> 把用户输入的字符全部转换成大写后再输出（输出由用户输入决定）
+```
+const { Transform } = require("stream");
+
+const upperCaseTr = new Transform({
+  transform(chunk, encoding, callback) {
+    this.push(chunk.toString().toUpperCase());
+    callback();
+  }
+});
+
+process.stdin.pipe(upperCaseTr).pipe(process.stdout);
+```
+#### Node.js 内置的 transform 流
+```
+// gzip.js
+const fs = require("fs");
+const zlib = require("zlib");
+const file = process.argv[2];
+const crypto = require("crypto");
+
+
+const { Transform } = require("stream");
+
+const reportProgress = new Transform({
+  transform(chunk, encoding, callback) {
+    process.stdout.write(".");
+    callback(null, chunk);
+  }
+});
+
+
+fs.createReadStream(file)
+  .pipe(crypto.createCipher("aes192", "123456"))
+  .pipe(zlib.createGzip())
+  .pipe(reportProgress)
+  .pipe(fs.createWriteStream(file + ".gz"))
+  .on("finish", () => console.log("Done"));
+```
+#### [Backpressuring in Streams](https://nodejs.org/en/docs/guides/backpressuring-in-streams/)
+* 当数据的写入较慢时，会发生数据的堆积现象。
+> There are instances where a Readable stream might give data to the Writable much too quickly — much more than the consumer can handle!
+
+> When that occurs, the consumer will begin to queue all the chunks of data for later consumption. The write queue will get longer and longer, and because of this more data must be kept in memory until the entire process has completed.
+
+> Writing to a disk is a lot slower than reading from a disk, thus, when we are trying to compress a file and write it to our hard disk, backpressure will occur because the write disk will not be able to keep up with the speed from the read.
+* 数据堆积的坏处
+> If a backpressure system was not present, the process would use up your system's memory, effectively slowing down other processes, and monopolizing a large part of your system until completion.
+	* Slowing down all other current processes
+	* A very overworked garbage collector
+	* Memory exhaustion
+* 在 UNIX,TCP 协议中，采用流控制来解决这个问题。而 Node.js 用 stream 来解决
+* 用 stream 解决 Backpressuring 的流程
+	1. pipe 函数将 backpressure closures 发送给 event triggers.
+	2. data buffer has exceeded the highWaterMark or the write queue is currently busy, Writable.write() return false.
+	3. backpressure system kicks in(?) the return value,导致 ReadableStream 由 flow 态变为 pause 态(可能是调用了 pause 方法)
+	4. 当积压的 buffer 被清空了，就会触发 drain 事件，从而导致 ReadableStream 由 pause 态变为 flow 态(调用 resume 方法)
+* lifeCycle of pipeline
+```
+                                                     +===================+
+                         x-->  Piping functions   +-->   src.pipe(dest)  |
+                         x     are set up during     |===================|
+                         x     the .pipe method.     |  Event callbacks  |
+  +===============+      x                           |-------------------|
+  |   Your Data   |      x     They exist outside    | .on('close', cb)  |
+  +=======+=======+      x     the data flow, but    | .on('data', cb)   |
+          |              x     importantly attach    | .on('drain', cb)  |
+          |              x     events, and their     | .on('unpipe', cb) |
++---------v---------+    x     respective callbacks. | .on('error', cb)  |
+|  Readable Stream  +----+                           | .on('finish', cb) |
++-^-------^-------^-+    |                           | .on('end', cb)    |
+  ^       |       ^      |                           +-------------------+
+  |       |       |      |
+  |       ^       |      |
+  ^       ^       ^      |    +-------------------+         +=================+
+  ^       |       ^      +---->  Writable Stream  +--------->  .write(chunk)  |
+  |       |       |           +-------------------+         +=======+=========+
+  |       |       |                                                 |
+  |       ^       |                              +------------------v---------+
+  ^       |       +-> if (!chunk)                |    Is this chunk too big?  |
+  ^       |       |     emit .end();             |    Is the queue busy?      |
+  |       |       +-> else                       +-------+----------------+---+
+  |       ^       |     emit .write();                   |                |
+  |       ^       ^                                   +--v---+        +---v---+
+  |       |       ^-----------------------------------<  No  |        |  Yes  |
+  ^       |                                           +------+        +---v---+
+  ^       |                                                               |
+  |       ^               emit .pause();          +=================+     |
+  |       ^---------------^-----------------------+  return false;  <-----+---+
+  |                                               +=================+         |
+  |                                                                           |
+  ^            when queue is empty     +============+                         |
+  ^------------^-----------------------<  Buffering |                         |
+               |                       |============|                         |
+               +> emit .drain();       |  ^Buffer^  |                         |
+               +> emit .resume();      +------------+                         |
+                                       |  ^Buffer^  |                         |
+                                       +------------+   add chunk to queue    |
+                                       |            <---^---------------------<
+                                       +============+
+```
 	
 	
 
