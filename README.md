@@ -262,8 +262,48 @@ setTimeout(() => {
 ---
 
 #### Node.js 的 stream
+* stream 有什么用
+> 不使用 stream 情况下，把 ./big_file.txt 内容 输出到 response。需要先把 ./big_file.txt 内容全部读出到内存中，在将该数据写入 response
+```
+const fs = require('fs')
+const http = require('http')
+
+const server = http.createServer()
+server.on('request', (request, response) => {
+
+    console.log(response.finished);
+
+    fs.readFile('./big_file.txt', (error, data) => {
+
+        // 内存中存有完整的 data
+        console.log(data);
+        if (error) throw error
+        response.end(data)
+        console.log('done')
+    })
+})
+server.listen(8888)
+console.log('8888')
+```
+> 而使用 stream,省去了“将读出数据放入内存”这一步。直接边读边写，因此大大减少了进程的内存占用
+```
+const http = require('http')
+const fs = require('fs')
+const server = http.createServer()
+server.on('request', (request, response) => {
+
+    const stream = fs.createReadStream('./big_file.txt')
+    stream.pipe(response)
+
+})
+
+server.listen(8888)
+```
+
 * readStream.pipe(writeStream)
 > The readable.pipe() method attaches a Writable stream to the readable
+
+> 注意 pipe 只是实现 stream 传递的一个 API。用事件机制也可以实现 stream 的传递。
 ```
 const http = require('http')
 const fs = require('fs')
@@ -324,11 +364,23 @@ server.listen(8888)
 
 	server.listen(8888)
 	```
-* WriteableStream
+* WritableStream
 	* [writable.write()](https://nodejs.org/docs/latest-v13.x/api/stream.html#stream_writable_write_chunk_encoding_callback)
 	> The writable.write() method writes some data to the stream, and calls the supplied callback once the data has been fully handled.
 	* [Event: 'drain'](https://nodejs.org/docs/latest-v13.x/api/stream.html#stream_event_drain)
 	> If a call to stream.write(chunk) returns false, the 'drain' event will be emitted when it is appropriate to resume writing data to the stream. 及数据流出现空档（read faster than write）,此时需要触发 drain 来进行额外的操作以恢复数据流的高效运行。处理高速数据流时才需要。
+	* [cork](https://nodejs.org/docs/latest-v13.x/api/stream.html#stream_writable_cork)
+	> 暂时不需要了解
 
+* stream 的种类
+1. Readable:可读
+2. Writable:可写
+3. Duplex:双向读写（每端都可读写，但不交叉）
+4. Transform:把 sass 变成 css，把 es6 变成 es5
+* buffer
+
+	
+	
+	
 
 
