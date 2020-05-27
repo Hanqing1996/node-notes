@@ -192,6 +192,51 @@ node module2.js
 { a: 1 }
 { a: 1 }
 ```
+* 循环引用
+1. module.exports={'name':'peiqi'} 是同步执行的
+2. require('./a') 时，会先检查缓存中有无 a.js 对应 module.export。若有，则直接读取 export 值。若没有，再去读取该文件（会执行其所有代码）
+3. 修改某个 moduled 的 export 值，缓存中对应 的 export 也会随之更新
+```
+// file a.js
+
+// 初始化时,a.js 的 module 的 export={}
+module.exports={'name':'peiqi'} // a.js 的 module 的 export 值为 {'name':'peiqi'},将其放入缓存
+const b = require('./b.js')
+
+console.log('require b : ')
+console.log(b)
+
+// 重定向 exports 引用对象
+// module.exports = {}
+module.exports.aTest = '777'
+
+
+
+// file b.js
+
+const a = require('./a.js') // 直接读取缓存中的 a.js 的 module 的 export 值，不执行 a.js 代码
+console.log(a)
+console.log(require.cache);
+module.exports.bTest = '666'// 修改了 b.js 的 module 的 export 值，修改后的结果将被放入缓存
+console.log(require.cache);// 缓存的 a.js 对应 module.export 已发生了变化
+
+// 这里的 setTimeout 本身是同步执行的，其回调函数在 1s 后执行。注意应该把 a.js,b.js 合起来看成一个完整的 js 代码段
+setTimeout(() => {
+    console.log(require.cache);// 此时 a.js 已经解析完毕， 对应的 module.export 已发生了变化，导致缓存随之更新
+    console.log(a)// 从缓存中读取 a.js 对应的 module.export
+} , 1000)
+```
+执行结果
+```
+{ name: 'peiqi' }
+{module-a:exports: { name: 'peiqi' },module-b:exports: {}}
+{module-a:exports: { name: 'peiqi' },module-b:exports: { bTest: '666' }}
+{ bTest: '666' }
+{module-a:exports:{ name: 'peiqi', aTest: '777' },module-b:exports: { bTest: '666' }}
+{ name: 'peiqi', aTest: '777' }
+```
+
+
 ---
 #### Eventloop
 [事件确定优先级后轮询](https://github.com/Hanqing1996/JavaScript-advance)
