@@ -328,8 +328,7 @@ server.listen(8888)
 	* [writable.write()](https://nodejs.org/docs/latest-v13.x/api/stream.html#stream_writable_write_chunk_encoding_callback)
 	> The writable.write() method writes some data to the stream, and calls the supplied callback once the data has been fully handled.
 	* [Event: 'drain'](https://nodejs.org/docs/latest-v13.x/api/stream.html#stream_event_drain)
-	> If a call to stream.write(chunk) returns false, the 'drain' event will be emitted when it is appropriate to resume writing data to the stream.
-	> 处理高速数据流时才需要
+	> If a call to stream.write(chunk) returns false, the 'drain' event will be emitted when it is appropriate to resume writing data to the stream. 及数据流出现空档（read faster than write）,此时需要触发 drain 来进行额外的操作以恢复数据流的高效运行。处理高速数据流时才需要。
 
 
 
