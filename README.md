@@ -28,6 +28,18 @@
 * 自带 eventloop,但是 Node.js 没有用它，而是基于 linuv 自己做了一个
 ---
 
+#### Node.js 的 HTTP 模块
+* [request 事件可能被触发多次](https://nodejs.org/docs/latest-v13.x/api/http.html#http_event_request)
+> Emitted each time there is a request. There may be multiple requests per connection (in the case of HTTP Keep-Alive connections).
+```
+const http = require('http')
+const server = http.createServer()
+server.on('request', (request, response) => {
+    console.log(response)
+})
+server.listen(8888)
+```
+
 #### Node.js 的事件机制
 * [emitter.emit](https://nodejs.org/docs/latest-v13.x/api/events.html#events_emitter_emit_eventname_args)
 > 是同步函数，不是异步的。Synchronously calls each of the listeners registered for the event named eventName, in the order they were registered, passing the supplied arguments to each.
@@ -240,8 +252,8 @@ setTimeout(() => {
 > CPU 告诉硬盘去读取数据，然后CPU执行其他计算任务，直到硬盘将数据送至内存，CPU才开始处理数据
 * IO
 > 磁盘读写,网络请求,内存读写，都算IO
-
-#### stream
+---
+#### Node.js 的 stream
 > The readable.pipe() method attaches a Writable stream to the readable:readStream.pipe(writeStream)
 ```
 const http = require('http')
@@ -281,7 +293,4 @@ server.listen(8888)
 
 
 
-
-#### Eventloop
-[事件确定优先级后轮询](https://github.com/Hanqing1996/JavaScript-advance)
 
