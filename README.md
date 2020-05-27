@@ -375,6 +375,8 @@ server.listen(8888)
 
 #### stream 的种类
 1. Readable:可读
+	* paused:默认状态。添加data事件监听或pipe(),resume()后变为flow态
+	* flow:删除data事件监听或pause()后变为paused态
 2. Writable:可写
 3. Duplex:双向读写（每端都可读写，但不交叉）
 4. Transform:把 sass 变成 css，把 es6 变成 es5
@@ -389,8 +391,36 @@ server.listen(8888)
 const buf4 = Buffer.from([1, 2, 3]);
 ```
 5. buffer 申请的内存是在 V8 的 heap 之外连续分配的一片内存空间
-#### 自定义一个
+#### 自定义一个stream
+* Writable
+```
+const Writable = require('stream').Writable;
 
+const outStream = new Writable({
+    write(chunk, encoding, callback) {
+        console.log(chunk.toString());
+        callback()
+    }
+});
+
+process.stdin.pipe(outStream)
+```
+* Readable
+```
+const {Readable} = require('stream')
+
+const inStream = new Readable()
+
+inStream.push('ABCDEFGHIJKLM')
+inStream.push('NOPQRSTUVWXYZ')
+
+inStream.push(null) // No more data
+
+// 以下代码等价于 inStream.pipe(process.stdout)
+inStream.on('data', (chunk)=>{
+    process.stdout.write(chunk)
+})
+```
 	
 	
 	
