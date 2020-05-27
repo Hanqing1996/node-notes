@@ -193,6 +193,7 @@ node module2.js
 { a: 1 }
 ```
 * 循环引用
+[参考](https://zhuanlan.zhihu.com/p/111989060)
 1. module.exports={'name':'peiqi'} 是同步执行的
 2. require('./a') 时，会先检查缓存中有无 a.js 对应 module.export。若有，则直接读取 export 值。若没有，再去读取该文件（会执行其所有代码）
 3. 修改某个 moduled 的 export 值，缓存中对应 的 export 也会随之更新
