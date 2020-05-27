@@ -28,6 +28,13 @@
 * 自带 eventloop,但是 Node.js 没有用它，而是基于 linuv 自己做了一个
 ---
 
+#### [调试](https://xiedaimala.com/tasks/016e61fe-4ce8-4987-9d52-68c203a66ae2/video_tutorials/7dc543f8-1522-4615-809e-a4134aa29663)
+* 作用:查看一个对象的属性和方法
+```
+node --inspect-brk index.js
+```
+---
+
 #### Node.js 的 HTTP 模块
 * [request 事件可能被触发多次](https://nodejs.org/docs/latest-v13.x/api/http.html#http_event_request)
 > Emitted each time there is a request. There may be multiple requests per connection (in the case of HTTP Keep-Alive connections).
@@ -253,8 +260,10 @@ setTimeout(() => {
 * IO
 > 磁盘读写,网络请求,内存读写，都算IO
 ---
+
 #### Node.js 的 stream
-> The readable.pipe() method attaches a Writable stream to the readable:readStream.pipe(writeStream)
+* readStream.pipe(writeStream)
+> The readable.pipe() method attaches a Writable stream to the readable
 ```
 const http = require('http')
 const fs = require('fs')
@@ -290,7 +299,37 @@ server.on('request', (request, response) => {
 
 server.listen(8888)
 ```
+* ReadableStream 
+	* Event: 'data',Event: 'end'
+	```
+	const http = require('http')
+	const fs = require('fs')
+	const server = http.createServer()
+	server.on('request', (request, response) => {
 
+	    const stream =
+		fs.createReadStream('./big_file.txt')
+
+	    stream.pipe(response)
+
+	    // ReadableStream 有数据可读，则触发回调函数
+	    stream.on('data', (data) => {
+		console.log(`读取${data}`);
+	    });
+	    stream.on('end',()=>{
+		console.log('read end');
+	    })
+
+	})
+
+	server.listen(8888)
+	```
+* WriteableStream
+	* [writable.write()](https://nodejs.org/docs/latest-v13.x/api/stream.html#stream_writable_write_chunk_encoding_callback)
+	> The writable.write() method writes some data to the stream, and calls the supplied callback once the data has been fully handled.
+	* [Event: 'drain'](https://nodejs.org/docs/latest-v13.x/api/stream.html#stream_event_drain)
+	> If a call to stream.write(chunk) returns false, the 'drain' event will be emitted when it is appropriate to resume writing data to the stream.
+	> 处理高速数据流时才需要
 
 
 
