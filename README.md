@@ -492,10 +492,9 @@ fs.createReadStream(file)
 
 > Writing to a disk is a lot slower than reading from a disk, thus, when we are trying to compress a file and write it to our hard disk, backpressure will occur because the write disk will not be able to keep up with the speed from the read.
 * 数据堆积的坏处
-> If a backpressure system was not present, the process would use up your system's memory, effectively slowing down other processes, and monopolizing a large part of your system until completion.
-	* Slowing down all other current processes
-	* A very overworked garbage collector
-	* Memory exhaustion
+	1. Slowing down all other current processes
+	2. A very overworked garbage collector
+	3. Memory exhaustion
 * 在 UNIX,TCP 协议中，采用流控制来解决这个问题。而 Node.js 用 stream 来解决
 * 用 stream 解决 Backpressuring 的流程
 	1. pipe 函数将 backpressure closures 发送给 event triggers.
