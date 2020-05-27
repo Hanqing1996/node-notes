@@ -202,16 +202,10 @@ node module2.js
 // 初始化时,a.js 的 module 的 export={}
 module.exports={'name':'peiqi'} // a.js 的 module 的 export 值为 {'name':'peiqi'},将其放入缓存
 const b = require('./b.js')
-
-console.log('require b : ')
 console.log(b)
-
-// 重定向 exports 引用对象
-// module.exports = {}
 module.exports.aTest = '777'
-
-
-
+```
+```
 // file b.js
 
 const a = require('./a.js') // 直接读取缓存中的 a.js 的 module 的 export 值，不执行 a.js 代码
@@ -235,8 +229,15 @@ setTimeout(() => {
 {module-a:exports:{ name: 'peiqi', aTest: '777' },module-b:exports: { bTest: '666' }}
 { name: 'peiqi', aTest: '777' }
 ```
-
-
+* 如果把上面的 module.exports.aTest = '777' 改为 module.exports = {}。执行结果为
+```
+{ name: 'peiqi' }
+{module-a:exports: { name: 'peiqi' },module-b:exports: {}}
+{module-a:exports: { name: 'peiqi' },module-b:exports: { bTest: '666' }}
+{ bTest: '666' }
+{module-a:exports:{},module-b:exports: { bTest: '666' }} // 缓存更新了。说明 a.js 的module.export 和缓存的 module-a:exports 始终指向同一片内存空间（应该是 node.js 做了额外的绑定）
+{ name: 'peiqi'} // 虽然缓存更新了，但是由于 a 与 require.module-a:exports 已经不指向同一片内存空间。所以a的值不发生变化。
+```
 ---
 #### Eventloop
 [事件确定优先级后轮询](https://github.com/Hanqing1996/JavaScript-advance)
