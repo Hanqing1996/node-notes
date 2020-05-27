@@ -1,3 +1,4 @@
+## 基本概念
 [Node.js](在线运行工具)
 
 #### Node.js 不是啥
@@ -35,8 +36,8 @@ node --inspect-brk index.js
 ```
 ---
 
-#### Node.js 的 HTTP 模块
-* [request 事件可能被触发多次](https://nodejs.org/docs/latest-v13.x/api/http.html#http_event_request)
+## Node.js 的 HTTP 模块
+#### [request 事件可能被触发多次](https://nodejs.org/docs/latest-v13.x/api/http.html#http_event_request)
 > Emitted each time there is a request. There may be multiple requests per connection (in the case of HTTP Keep-Alive connections).
 ```
 const http = require('http')
@@ -46,9 +47,9 @@ server.on('request', (request, response) => {
 })
 server.listen(8888)
 ```
-
-#### Node.js 的事件机制
-* [emitter.emit](https://nodejs.org/docs/latest-v13.x/api/events.html#events_emitter_emit_eventname_args)
+---
+## Node.js 的事件机制
+#### [emitter.emit](https://nodejs.org/docs/latest-v13.x/api/events.html#events_emitter_emit_eventname_args)
 > 是同步函数，不是异步的。Synchronously calls each of the listeners registered for the event named eventName, in the order they were registered, passing the supplied arguments to each.
 ```
 const EventEmitter = require('events');
@@ -65,7 +66,7 @@ myEmitter.emit('event');
 console.log(3);
 ```
 执行顺序为 2 1 3
-* one 和 emit 的具体机制 
+#### one 和 emit 的具体机制 
 1. emitter.on('event',callback);emitter.emit('event')后 callback才会执行
 2. 多次注册事件，会形成一个事件队列，emit 触发当前事件队列中的所有事件，不会触发 emit 后新注册的事件
 ```
@@ -100,7 +101,7 @@ hhh
 	});
 ```
 只有当该函数在事件队列中，且 emit('event') 时才会执行。
-* [emitter.off](https://nodejs.org/docs/latest-v13.x/api/events.html#events_emitter_off_eventname_listener)
+#### [emitter.off](https://nodejs.org/docs/latest-v13.x/api/events.html#events_emitter_off_eventname_listener)
 > 取消订阅，必须传入回调函数名（即引用）
 ```
 const EventEmitter = require('events');
@@ -139,8 +140,8 @@ myEmitter.emit('event');
 1
 ```
 ---
-#### Node.js 的模块机制
-* 缓存
+## Node.js 的模块机制
+#### 缓存
 ```
 // module1.js
 console.log(1);
@@ -186,7 +187,7 @@ node module2.js
 
 {cache{module2...,module1}} // 缓存了 module1
 ```	
-* exports 是指向 module.exports 的引用
+#### exports 是指向 module.exports 的引用
 ```
 // module1.js
 
@@ -205,7 +206,7 @@ node module2.js
 { a: 1 }
 { a: 1 }
 ```
-* 循环引用
+#### 循环引用
 [参考](https://zhuanlan.zhihu.com/p/111989060)
 1. module.exports={'name':'peiqi'} 是同步执行的
 2. require('./a') 时，会先检查缓存中有无 a.js 对应 module.export。若有，则直接读取 export 值。若没有，再去读取该文件（会执行其所有代码）
@@ -254,15 +255,15 @@ setTimeout(() => {
 ```
 ---
 
-#### Node.js 的异步
-* 异步
+## Node.js 的异步
+#### 异步
 > CPU 告诉硬盘去读取数据，然后CPU执行其他计算任务，直到硬盘将数据送至内存，CPU才开始处理数据
-* IO
+#### IO
 > 磁盘读写,网络请求,内存读写，都算IO
 ---
 
-#### Node.js 的 stream
-* stream 有什么用
+## Node.js 的 stream
+#### stream 有什么用
 > 不使用 stream 情况下，把 ./big_file.txt 内容 输出到 response。需要先把 ./big_file.txt 内容全部读出到内存中，在将该数据写入 response
 ```
 const fs = require('fs')
@@ -300,7 +301,7 @@ server.on('request', (request, response) => {
 server.listen(8888)
 ```
 
-* readStream.pipe(writeStream)
+#### readStream.pipe(writeStream)
 > The readable.pipe() method attaches a Writable stream to the readable
 
 > 注意 pipe 只是实现 stream 传递的一个 API。用事件机制也可以实现 stream 的传递。
@@ -339,7 +340,7 @@ server.on('request', (request, response) => {
 
 server.listen(8888)
 ```
-* ReadableStream 
+#### ReadableStream 
 	* Event: 'data',Event: 'end'
 	```
 	const http = require('http')
@@ -364,7 +365,7 @@ server.listen(8888)
 
 	server.listen(8888)
 	```
-* WritableStream
+#### WritableStream
 	* [writable.write()](https://nodejs.org/docs/latest-v13.x/api/stream.html#stream_writable_write_chunk_encoding_callback)
 	> The writable.write() method writes some data to the stream, and calls the supplied callback once the data has been fully handled.
 	* [Event: 'drain'](https://nodejs.org/docs/latest-v13.x/api/stream.html#stream_event_drain)
@@ -372,12 +373,23 @@ server.listen(8888)
 	* [cork](https://nodejs.org/docs/latest-v13.x/api/stream.html#stream_writable_cork)
 	> 暂时不需要了解
 
-* stream 的种类
+#### stream 的种类
 1. Readable:可读
 2. Writable:可写
 3. Duplex:双向读写（每端都可读写，但不交叉）
 4. Transform:把 sass 变成 css，把 es6 变成 es5
-* buffer
+---
+## Node.js 的 [buffer](https://nodejs.org/dist/latest-v6.x/docs/api/buffer.html#buffer_buffer)
+1. 8-bit unsigned integer:8位无符号整数，范围是二进制的00000000-11111111，即十进制的0-255。
+2. Buffer 类是 JavaScript 语言内置的 Uint8Array 类的子类。
+3. buffer 的出现是因为早期的 Node.js 作为一门服务器语言无法处理二进制数据流，于是封装并优化了js语言的 Uint8Array API。Prior to the introduction of TypedArray in ECMAScript 2015 (ES6), the JavaScript language had no mechanism for reading or manipulating streams of binary data. 
+4. buffer里的元素是二进制数
+```
+// Creates a Buffer containing [0x1, 0x2, 0x3].
+const buf4 = Buffer.from([1, 2, 3]);
+```
+5. buffer 申请的内存是在 V8 的 heap 之外连续分配的一片内存空间
+#### 自定义一个
 
 	
 	
