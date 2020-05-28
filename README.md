@@ -545,7 +545,74 @@ fs.createReadStream(file)
                                        |            <---^---------------------<
                                        +============+
 ```
-	
-	
+---
+## [Node.js 的 Child Process 模块](https://nodejs.org/docs/latest-v13.x/api/child_process.html)
+#### shell
+* shell 不是进程，而是一个命令行环境（容器）
+#### child_process.exec
+> Spawns a shell then executes the command within that shell, buffering any generated output. The command string passed to the exec function is processed directly by the shell and special characters (vary based on shell) need to be dealt with accordingly:
+```
+const util = require('util');
+const exec = util.promisify(require('child_process').exec);
 
+async function lsExample() {
+  const { stdout, stderr } = await exec('ls');
+  console.log('stdout:', stdout);
+  console.error('stderr:', stderr);
+}
+lsExample();
+```
+#### child_process.execFile
+> The child_process.execFile() function is similar to child_process.exec() except that it does not spawn a shell by default. Rather, the specified executable file is spawned directly as a new process making it slightly more efficient than child_process.exec().The same options as child_process.exec() are supported. Since a shell is not spawned, behaviors such as I/O redirection and file globbing are not supported.
+```
+const { execFile } = require('child_process');
+const child = execFile('node', ['--version'], (error, stdout, stderr) => {
+  if (error) {
+    throw error;
+  }
+  console.log(stdout);
+});
+```
+#### [child_process.spawn](https://nodejs.org/docs/latestv13.x/api/child_process.html#child_process_child_process_spawn_command_args_options)
+* 用法基本与 execFile 相同
+* 没有回调函数，只能通过流获取事件结果（自然也没有 maxBuffer 的限制）
+```
+const { spawn } = require('child_process');
+const ls = spawn('ls', ['-lh', '/usr']);
+
+ls.stdout.on('data', (data) => {
+  console.log(`stdout: ${data}`);
+});
+
+ls.stderr.on('data', (data) => {
+  console.error(`stderr: ${data}`);
+});
+
+ls.on('close', (code) => {
+  console.log(`child process exited with code ${code}`);
+});
+```
+#### [child_process.fork](https://nodejs.org/docs/latest-v13.x/api/child_process.html#child_process_child_process_fork_modulepath_args_options)
+* 只创建 Node 进程
+* 会建立 IPC channel 以实现父子进程通信[](https://nodejs.org/docs/latest-v13.x/api/child_process.html#child_process_subprocess_send_message_sendhandle_options_callback)
+```
+const cp = require('child_process');
+const n = cp.fork(`${__dirname}/sub.js`);
+
+n.on('message', (m) => {
+  console.log('PARENT got message:', m);
+});
+
+// Causes the child to print: CHILD got message: { hello: 'world' }
+n.send({ hello: 'world' });
+```
+```
+// sub.js
+process.on('message', (m) => {
+  console.log('CHILD got message:', m);
+});
+
+// Causes the parent to print: PARENT got message: { foo: 'bar', baz: null }
+process.send({ foo: 'bar', baz: NaN });
+```
 
