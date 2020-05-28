@@ -596,6 +596,7 @@ ls.on('close', (code) => {
 * 只创建 Node 进程
 * 会建立 IPC channel 以实现父子进程通信[](https://nodejs.org/docs/latest-v13.x/api/child_process.html#child_process_subprocess_send_message_sendhandle_options_callback)
 ```
+// parent.js
 const cp = require('child_process');
 const n = cp.fork(`${__dirname}/sub.js`);
 
@@ -614,5 +615,8 @@ process.on('message', (m) => {
 
 // Causes the parent to print: PARENT got message: { foo: 'bar', baz: null }
 process.send({ foo: 'bar', baz: NaN });
+```
+```
+// node parent.js
 ```
 
