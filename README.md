@@ -640,8 +640,8 @@ callbackFunction((err, ret) => {
 同上理
 ---
 ## [Node.js 的 crypto 模块](https://nodejs.org/api/crypto.html)
-#### [PBKDF2-](https://nodejs.org/api/crypto.html#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback)
-> Password-Based Key Derivation Function 2.
+#### [PBKDF2- Password-Based Key Derivation Function 2](https://nodejs.org/api/crypto.html#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback)
+> 如果我们要往数据库里存用户密码，就需要用到它
 ```
 crypto.pbkdf2(password, salt, iterations, keylen, digest, callback)
 ```
@@ -649,8 +649,10 @@ crypto.pbkdf2(password, salt, iterations, keylen, digest, callback)
 > The iterations argument must be a number set as high as possible. The higher the number of iterations, the more secure the derived key will be, but will take a longer amount of time to complete.
 * salt
 > The salt should be as unique as possible. It is recommended that a salt is random and at least 16 bytes long. 
+* keylen
+> 最后得到的 derivedKey 的位数
 * derivedKey
-> 我们最终得到的加密后的秘钥
+> 我们最终得到的加密后的秘钥,即最后存入数据库的东西。
 ```
 const crypto = require('crypto');
 crypto.pbkdf2('secret', 'salt', 100000, 64, 'sha512', (err, derivedKey) => {
