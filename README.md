@@ -619,4 +619,44 @@ process.send({ foo: 'bar', baz: NaN });
 ```
 // node parent.js
 ```
+---
+## [Node.js 的 Util 模块](https://nodejs.org/api/util.html)
+#### [callbackify](https://nodejs.org/api/util.html#util_util_callbackify_original)
+返回回调函数
+```
+const util = require('util');
+
+async function fn() {
+  return 'hello world';
+}
+const callbackFunction = util.callbackify(fn);
+
+callbackFunction((err, ret) => {
+  if (err) throw err;
+  console.log(ret);
+});
+```
+#### promisify
+同上理
+---
+## [Node.js 的 crypto 模块](https://nodejs.org/api/crypto.html)
+#### [PBKDF2-](https://nodejs.org/api/crypto.html#crypto_crypto_pbkdf2_password_salt_iterations_keylen_digest_callback)
+> Password-Based Key Derivation Function 2.
+```
+crypto.pbkdf2(password, salt, iterations, keylen, digest, callback)
+```
+* iterations
+> The iterations argument must be a number set as high as possible. The higher the number of iterations, the more secure the derived key will be, but will take a longer amount of time to complete.
+* salt
+> The salt should be as unique as possible. It is recommended that a salt is random and at least 16 bytes long. 
+* derivedKey
+> 我们最终得到的加密后的秘钥
+```
+const crypto = require('crypto');
+crypto.pbkdf2('secret', 'salt', 100000, 64, 'sha512', (err, derivedKey) => {
+  if (err) throw err;
+  console.log(derivedKey.toString('hex'));  // '3745e48...08d59ae'
+});
+```
+
 
