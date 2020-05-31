@@ -645,12 +645,14 @@ callbackFunction((err, ret) => {
 ```
 crypto.pbkdf2(password, salt, iterations, keylen, digest, callback)
 ```
-* iterations
-> The iterations argument must be a number set as high as possible. The higher the number of iterations, the more secure the derived key will be, but will take a longer amount of time to complete.
 * salt
 > The salt should be as unique as possible. It is recommended that a salt is random and at least 16 bytes long. 
+* iterations
+> The iterations argument must be a number set as high as possible. The higher the number of iterations, the more secure the derived key will be, but will take a longer amount of time to complete.
 * keylen
 > 最后得到的 derivedKey 的位数
+* digest
+> 即加密算法，比如 sha512
 * derivedKey
 > 我们最终得到的加密后的秘钥,即最后存入数据库的东西。
 ```
