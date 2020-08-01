@@ -662,5 +662,38 @@ crypto.pbkdf2('secret', 'salt', 100000, 64, 'sha512', (err, derivedKey) => {
   console.log(derivedKey.toString('hex'));  // '3745e48...08d59ae'
 });
 ```
+---
+#### [process.cwd()](https://nodejs.org/docs/latest-v13.x/api/process.html#process_process_cwd)
+> The process.cwd() method returns the current working directory of the Node.js process.
+
+* 在 blog 项目的 pages/api/posts.tsx 中，想要获取 blog 目录下的 markdown 文件夹路径
+```
+console.log(path.join(process.cwd(),'markdown'));// D:\localRepo\next-summary\blog\markdown
+```
+---
+#### 读取目录文件名,读取文件内容
+```
+import path from 'path';
+import fs, {promises as fsPromise} from 'fs';
+
+const markdownDir = path.join(process.cwd(), 'markdown');
+
+export const getPosts = async () => {
+    // 读取 markdownDir 目录下文件名
+    const fileNames = await fsPromise.readdir(markdownDir);
+
+    fileNames.map(fileName=>{
+        const fullPath=path.join(markdownDir,fileName)
+        // 读取文件内容
+        const text=fs.readFileSync(fullPath,'utf-8')
+        console.log(text);
+    })
+
+    return fileNames;
+};
+```
+
+
+
 
 
